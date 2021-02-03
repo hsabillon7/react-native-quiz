@@ -18,7 +18,13 @@ const QuestionCard = ({
       <Text style={styles.question}>{question}</Text>
       <View>
         {answers.map((answer) => (
-          <TouchableOpacity key={answer} style={styles.answerButton}>
+          <TouchableOpacity
+            key={answer}
+            style={styles.answerButton}
+            onPress={() => {
+              callback(answer);
+            }}
+          >
             <Text style={styles.answerButtonText}>{answer}</Text>
           </TouchableOpacity>
         ))}
