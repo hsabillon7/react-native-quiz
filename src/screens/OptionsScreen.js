@@ -1,25 +1,54 @@
-import React from "react";
+import React, { useContext, useState } from "react";
 import { StyleSheet, Dimensions, View, Text, TextInput } from "react-native";
 import { Picker } from "@react-native-picker/picker";
 import { categories } from "../api";
 import Button from "../components/Button";
+import { GameContext } from "../providers/GameProvider";
 
 const { width } = Dimensions.get("screen");
 
-const OptionsScreen = () => {
+const OptionsScreen = ({ navigation }) => {
+  // Obtener los valores desde el contexto
+  const {
+    question,
+    category,
+    difficulty,
+    setQuestion,
+    setCategory,
+    setDifficulty,
+  } = useContext(GameContext);
+  const [theQuestion, setTheQuestion] = useState(question);
+  const [theCategory, setTheCategory] = useState(category);
+  const [theDifficulty, setTheDifficulty] = useState(difficulty);
   // Ordenar el arreglo
   categories.sort((a, b) => (a.description > b.description ? 1 : -1));
+
+  const handlerSave = () => {
+    // Almacenar los valores en el state del contexto
+    setQuestion(theQuestion);
+    setCategory(theCategory);
+    setDifficulty(theDifficulty);
+
+    // Navegar a la pantalla anterior
+    navigation.goBack();
+  };
 
   return (
     <View style={styles.container}>
       <Text style={styles.label}>Number of questions</Text>
       <TextInput
-        placeholder={10}
+        value={theQuestion}
+        onChangeText={setTheQuestion}
         keyboardType="number-pad"
         style={styles.input}
       />
       <Text style={styles.label}>Category</Text>
-      <Picker style={styles.select}>
+      <Picker
+        style={styles.select}
+        onValueChange={(itemValue) => {
+          setTheCategory(itemValue);
+        }}
+      >
         {categories.map((category) => (
           <Picker.Item
             key={category.value}
@@ -29,12 +58,23 @@ const OptionsScreen = () => {
         ))}
       </Picker>
       <Text style={styles.label}>Difficulty</Text>
-      <Picker style={styles.select}>
+      <Picker
+        style={styles.select}
+        onValueChange={(itemValue) => {
+          setTheDifficulty(itemValue);
+        }}
+      >
         <Picker.Item label="Easy" value="easy" />
         <Picker.Item label="Medium" value="medium" />
         <Picker.Item label="Hard" value="hard" />
       </Picker>
-      <Button title="Save" callback={() => {}} />
+      <Button title="Save" callback={handlerSave} />
+      <Button
+        title="Back"
+        callback={() => {
+          navigation.goBack();
+        }}
+      />
     </View>
   );
 };

@@ -1,11 +1,13 @@
-import React, { useState, useEffect } from "react";
-import { StyleSheet, Text, View } from "react-native";
+import React, { useState, useEffect, useContext } from "react";
+import { StyleSheet, Text, View, ScrollView } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import fetchQuizQuestion from "../api";
 import QuestionCard from "../components/QuestionCard";
 import Button from "../components/Button";
+import { GameContext } from "../providers/GameProvider";
 
-const GameScreen = ({ route }) => {
+const GameScreen = ({ route, navigation }) => {
+  const { question, category, difficulty } = useContext(GameContext);
   const { start } = route.params;
   const [questions, setQuestions] = useState([]);
   const [number, setNumber] = useState(0);
@@ -13,6 +15,7 @@ const GameScreen = ({ route }) => {
   const [score, setScore] = useState(0);
   const [userAnswer, setUserAnswer] = useState("");
   const [restart, setRestart] = useState(false);
+  const [error, setError] = useState(false);
 
   useEffect(() => {
     handlerStart();
@@ -25,7 +28,13 @@ const GameScreen = ({ route }) => {
     setGameOver(false);
 
     const getQuestions = async () => {
-      const newQuestions = await fetchQuizQuestion(10, "easy");
+      const newQuestions = await fetchQuizQuestion(
+        question,
+        difficulty,
+        category
+      );
+
+      if (!newQuestions.length) setError(true);
 
       setQuestions(newQuestions);
     };
@@ -37,7 +46,7 @@ const GameScreen = ({ route }) => {
   const handlerNextQuestion = () => {
     const nextNumber = number + 1;
 
-    if (nextNumber === 10) setGameOver(true);
+    if (nextNumber === Number(question)) setGameOver(true);
 
     setNumber(nextNumber);
     setUserAnswer("");
@@ -56,8 +65,24 @@ const GameScreen = ({ route }) => {
     setRestart(!restart);
   };
 
+  if (error) {
+    return (
+      <View style={styles.container}>
+        <Text style={styles.category}>
+          The API doesn't have questions for this configuration
+        </Text>
+        <Button
+          title="Back"
+          callback={() => {
+            navigation.goBack();
+          }}
+        />
+      </View>
+    );
+  }
+
   return (
-    <View style={styles.container}>
+    <ScrollView contentContainerStyle={styles.container}>
       {!gameOver && questions.length ? (
         <View>
           <View style={styles.categoryContainer}>
@@ -74,7 +99,7 @@ const GameScreen = ({ route }) => {
             question={questions[number].question}
             answers={questions[number].answers}
             questionNumber={number + 1}
-            totalQuestions={10}
+            totalQuestions={question}
             correctAnswer={questions[number].correct_answer}
             callback={handlerCheckAnswer}
             userAnswer={userAnswer}
@@ -85,13 +110,19 @@ const GameScreen = ({ route }) => {
           </View>
         </View>
       ) : null}
-      {gameOver ? (
+      {gameOver && questions.length ? (
         <View>
           <Text style={styles.correctAnswer}>Correct answers: {score}</Text>
           <Button title="Restart" callback={handlerRestart} />
+          <Button
+            title="Back"
+            callback={() => {
+              navigation.goBack();
+            }}
+          />
         </View>
       ) : null}
-    </View>
+    </ScrollView>
   );
 };
 
@@ -115,7 +146,7 @@ const styles = StyleSheet.create({
   categoryGradient: {
     borderWidth: 4,
     borderColor: "#414a6b",
-    bordeRadius: 30,
+    borderRadius: 30,
   },
   category: {
     padding: 10,

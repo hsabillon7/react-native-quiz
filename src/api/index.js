@@ -2,7 +2,7 @@ import { shuffleArray } from "../utils/utils";
 
 // Categorías de la API
 export const categories = [
-  { description: "Any Category", value: "any" },
+  { description: "Any Category", value: "" },
   { description: "General Knowledge", value: "9" },
   { description: "Entertainment: Books", value: "10" },
   { description: "Entertainment: Film", value: "11" },
